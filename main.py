@@ -1,32 +1,21 @@
-import telebot
+from telegram import Update
+from telegram.ext import Application, CommandHandler, ContextTypes
 import os
-from flask import Flask, request
 
-TOKEN = '7838831366:AAFv5D3UR4s9QdoDTLeRTD87r_d8sTAZnIs'
-bot = telebot.TeleBot(TOKEN)
-server = Flask(__name__)
+TOKEN = os.getenv("7838831366:AAFv5D3UR4s9QdoDTLeRTD87r_d8sTAZnIs")
 
-@bot.message_handler(commands=['start'])
-def start(message):
-    # HTML formatida xabar yuborish
-    text = (
-        "<b>Salom, xush kelibsiz!</b>\n\n"
-        "Men <i>Render</i> hostingida muvaffaqiyatli ishlayapman.\n"
-        "Sizga yordam berishdan xursandman! 😊\n\n"
-        "<a href='https://t.me/BotFather'>BotFather</a> orqali botingizni sozlaganingiz uchun rahmat."
-    )
-    bot.reply_to(message, text, parse_mode='HTML')
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text("Salom aka 👋 Bot Render’da ishlayapti ✅")
 
-@server.route('/' + TOKEN, methods=['POST'])
-def getMessage():
-    json_string = request.get_data().decode('utf-8')
-    update = telebot.types.Update.de_json(json_string)
-    bot.process_new_updates([update])
-    return "!", 200
+app = Application.builder().token(TOKEN).build()
+app.add_handler(CommandHandler("start", start))
 
-@server.route("/")
-def webhook():
-    return "Bot serveri faol va HTML-ni tushunadi!", 200
-
-if __name__ == "__main__":
-    server.run(host="0.0.0.0", port=int(os.environ.get('PORT', 5000)))
+print("Bot ishga tushdi...")
+app.run_polling()
+python-telegram-bot==20.7
+services:
+  - type: worker
+    name: telegram-bot
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: python main.py
